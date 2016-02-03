@@ -20,9 +20,10 @@ use warnings;
 
 use Test::More;    # last test to print
 
-my $roleslist1 = '!guest+r, user+cru';
+my $roleslist1 = '!guest+r user+cru';
 my $roleslist2 = '!admin';
 my $roleslist3 = 'any+r';
+my $roleslist4 = '!guest+cr, user+cru';
 
 my $rolearr1 = [ '',  'admin', 'crud' ];
 my $rolearr2 = [ '!', 'guest', 'cud' ];
@@ -32,16 +33,21 @@ require_ok('FAW::uRoles');
 
 my $fawroles = new_ok("FAW::uRoles");
 
+#constant->import("FAW::uRoles");
+
+# Проверка логики дополнения ролей 
 is( $fawroles->complete_role('guest'),
     'guest+crud', 'корректно расширены права роли' );
 is( $fawroles->complete_role('guest+cu'), 'guest+cu',
     'существующие права роли не дополняются');
 
+# Проверка логики разделения роли на описатели
 is_deeply( $fawroles->split_role("admin"), $rolearr1,
-    'корректный разбор с дополнением аргументами');
+    'корректный разбор базовой роли');
 is_deeply( $fawroles->split_role("!guest+cud"), $rolearr2,
     'корректный разбор полного инверсного правила');
 
+# Проверка реакции на разные комбинации ролей и текущего обращения
 is( $fawroles->check_role( 'any', 'GET', $roleslist1 ), 4,
     'any = ' .$roleslist1. ' : запрет. роль any запрещено назначать пользователю. Будет всегда запрет.' );
 
@@ -72,5 +78,9 @@ is( $fawroles->check_role( 'user', 'get', $roleslist3 ), 0,
     'user = ' .$roleslist3. ' : доступ. регистр имени действия значения не имеет' );
 is( $fawroles->check_role( 'user', 'gett', $roleslist3 ), 5,
     'user = ' .$roleslist3. ' : запрет. действие должно находится в разрешённом списке' );
+
+# Перечень ролей не должен содержать запятой. Разделители - только пробелы
+is( $fawroles->check_role( 'user', 'gett', $roleslist4 ), 6,
+    'user = ' .$roleslist3. ' : ошибка. роли перечислены через запятую' );
 
 done_testing;
