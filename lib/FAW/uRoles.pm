@@ -1,4 +1,4 @@
-# ABSTRACT: rights management basic functional
+# ABSTRACT: Модуль сопоставления и проверок ролей.
 
 package FAW::uRoles;
 
@@ -12,11 +12,13 @@ use constant {
     ACTION_DENY => 3,
     ROLE_MISTAKE_NAME => 4,
     ACTION_UNTYPIC => 5,
+    ROLE_WRONG_FORMAT => 6,
 };
 
-=head1 
 
-    Модуль сопоставления и проверок ролей.
+=head1 Вспомогательные процедуры
+
+Функциональные кирпичики.
 
 =cut
 
@@ -59,7 +61,7 @@ sub split_role {
 
 =head2 compare_roles
 
-Сравнить роли.
+Сравнивает роли.
 
 Процедура-заглушка. Ничего не делает.
 
@@ -94,21 +96,64 @@ sub translate_action {
     return $action;
 }
 
+=head2 decode_status
+
+Расшифровать статус.
+
+Выполняет преобразование кода ошибки в краткое текстовое сообщение для
+дальнейшего вывода.
+
+=cut
+
+sub decode_status {
+    my ($self, $status) = @_;
+    
+    my $code = {
+        OK => "all ok",
+        ROLE_NOT_AT_LIST => "role not at list",
+        ROLE_INVERTED => "inverted role",
+        ACTION_DENY => "denied action",
+        ROLE_MISTAKE_NAME => "mistake rolename",
+        ACTION_UNTYPIC => "untypic action",
+    };
+    
+    $status = $code->{$status} || "unknown status";
+    return $status;
+}
+
+
+=head1 Основные процедуры
+
+Основной функционал модуля.
+
+=cut
+
 =head2 check_role
 
 Проверяет роль и действие текущего пользователя согласно переданному на
 вход списку правил.
 
-Возвращает 0 при успехе (если правила разрешают пользователю предпринимать
+Возвращает OK при успехе (если правила разрешают пользователю предпринимать
 запрошенное действие) или код ошибки, указывающий на причину запрета.
 
-1 = роль отсутствует в списке;
-2 = роль инверсная, т.е. действие разрешается, если данная роль не
-    назначена пользователю;
-3 = запрошенное действие запрещается для этой роли;
-4 = нетипичная роль (роль пользователя не может быть "any");
-5 = нетипичное действие;
-6 = некорректное перечисление ролей;
+=item B<ROLE_NOT_AT_LIST>
+роль отсутствует в списке;
+
+=item B<ROLE_INVERTED>
+роль инверсная, т.е. действие разрешается, если данная роль не
+назначена пользователю;
+
+=item B<ACTION_DENY>
+запрошенное действие запрещается для этой роли;
+
+=item B<ROLE_MISTAKE_NAME>
+нетипичная роль (роль пользователя не может быть "any");
+
+=item B<ACTION_UNTYPIC>
+нетипичное действие;
+
+=item B<ROLE_WRONG_FORMAT>
+некорректное перечисление ролей;
 
 =cut
 
@@ -139,31 +184,6 @@ sub check_role {
         }
     };
     return $deny_flag;
-}
-
-=head2 decode_status
-
-Расшифровать статус.
-
-Выполняет преобразование кода ошибки в краткое текстовое сообщение для
-дальнейшего вывода.
-
-=cut
-
-sub decode_status {
-    my ($self, $status) = @_;
-    
-    my $code = {
-        OK => "all ok",
-        ROLE_NOT_AT_LIST => "role not at list",
-        ROLE_INVERTED => "inverted role",
-        ACTION_DENY => "denied action",
-        ROLE_MISTAKE_NAME => "mistake rolename",
-        ACTION_UNTYPIC => "untypic action",
-    };
-    
-    $status = $code->{$status} || "unknown status";
-    return $status;
 }
 
 __PACKAGE__->meta->make_immutable;
