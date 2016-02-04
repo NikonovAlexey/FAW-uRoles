@@ -1,6 +1,5 @@
-# ABSTRACT: Модуль сопоставления и проверок ролей.
-
 package FAW::uRoles;
+# ABSTRACT: Модуль сопоставления и проверок ролей.
 
 use Moo;
 use feature ':5.10';
